@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slot Machine Tracker</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 20px; background: #111; color: #fff; }
+    .reels { font-size: 3em; margin: 20px 0; }
+    input, button { font-size: 1.2em; padding: 10px; margin: 10px; }
+    .log { font-size: 0.9em; margin-top: 20px; max-height: 200px; overflow-y: auto; background: #222; padding: 10px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>🎰 Slot Machine Tracker</h1>
+  <p>Balance: $<span id="balance">100</span></p>
+  <input type="number" id="bet" placeholder="Enter your bet" min="1" />
+  <button onclick="spin()">Spin</button>
+  <div class="reels" id="reels">🍒 🍋 💎</div>
+  <p id="result"></p>
+  <div class="log" id="log"></div>
+
+  <script>
+    const symbols = ['🍒', '🔔', '💎', '🍋', '⭐', '7️⃣'];
+    const payouts = { '🍒': 2, '🔔': 5, '💎': 10, '🍋': 3, '⭐': 7, '7️⃣': 20 };
+    let balance = 100;
+
+    function spin() {
+      const betInput = document.getElementById('bet');
+      const bet = parseInt(betInput.value);
+      if (isNaN(bet) || bet <= 0 || bet > balance) {
+        document.getElementById('result').textContent = "Invalid bet.";
+        return;
+      }
+
+      const reels = [rand(), rand(), rand()];
+      document.getElementById('reels').textContent = reels.join(' ');
+
+      let win = 0;
+      if (reels[0] === reels[1] && reels[1] === reels[2]) {
+        win = bet * payouts[reels[0]];
+      }
+
+      // Bonus round
+      let bonus = 0;
+      if (reels.every(r => r === '⭐') || reels.every(r => r === '7️⃣')) {
+        bonus = Math.floor(Math.random() * 41) + 10;
+        win += bonus;
+      }
+
+      balance += win - bet;
+      document.getElementById('balance').textContent = balance;
+
+      let result = win ? `You win $${win}` : "No win";
+      if (bonus) result += ` (Bonus: $${bonus})`;
+
+      // Redemption logic
+      if (balance >= 200) {
+        result += " 💰 Goal reached! Resetting to $100.";
+        balance = 100;
+      } else if (balance <= 50) {
+        result += " ⚠️ Stop-loss hit. Resetting to $100.";
+        balance = 100;
+      }
+
+      document.getElementById('balance').textContent = balance;
+      document.getElementById('result').textContent = result;
+      logSpin(reels, win, balance);
+    }
+
+    function rand() {
+      return symbols[Math.floor(Math.random() * symbols.length)];
+    }
+
+    function logSpin(reels, win, balance) {
+      const log = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.textContent = `${reels.join(' ')} → Win: $${win} → Balance: $${balance}`;
+      log.prepend(entry);
+    }
+  </script>
+</body>
+</html>
